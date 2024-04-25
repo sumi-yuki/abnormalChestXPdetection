@@ -4,7 +4,7 @@ Created on Fri Oct 27 12:37:25 2023
 
 @author: Yuki Sumi
 
-This program evaluate the keras models which classyfy chest X-ray as normal or pneumonia
+This program evaluate the keras models which classify chest X-ray images as normal or pneumonia
 There are two models:
  original_model = "xray_model_original.h5"
  fine_tuned_model = "xray_model_finetuning.h5"
@@ -20,7 +20,7 @@ keras models
  
 "xray_model_finetuning.h5" is the fine-tuned model from "xray_model_original.h5" by "finetuning.py"
 
-To evaluate model, use chest X-ray:
+To evaluate model, use chest X-ray images:
 testXP_dir("testXP")/
 ...normalXP_subdir("normalXP")/
 ......normal_1.jpg
@@ -92,5 +92,3 @@ model = tf.keras.models.load_model(fine_tuned_model)
 print("Evaluating model:",fine_tuned_model)
 results = model.evaluate(ds, return_dict=True)
 print("test model:",results)
-
-
