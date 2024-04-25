@@ -17,7 +17,7 @@ The original model was adapted from
  https://keras.io/examples/vision/xray_classification_with_tpus/
  modified by Yuki Sumi
  modification 1: Implementation for TPU was removed. 
- modification 2: Image resolution was increased from 180*180*3 to 360*360*3
+ modification 2: Image resolution was increased from 180x180x3 to 360x360x3
    IMAGE_SIZE = [360, 360] <- [180, 180]
    I added the following convolutional layer to the model.
      conv_block(512, x)
