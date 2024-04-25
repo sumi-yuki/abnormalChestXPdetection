@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<!-- Web application that shows the possibility for the existence of pneumonia in the chest X-ray image -->
+<!-- As a prerequisite, the javascript tensorflow model (https://www.tensorflow.org/js?hl=en) exists as the tmdu_pneumonia_model_js folder in the same location at this file -->
+<!-- The model input is [1,360,360,3] or 360x360 colors of float ranging 0-255 -->
+<!-- And the output of the model is the probability for pneumonia -->
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shows the possibility for the existence of pneumonia in the chest X-ray image</title>
+    <style>
+     body    {background-color: powderblue;}
+     h1      {font-family: courier; color: black; }
+     h2      {font-family: courier; color: blue; }
+     p       {font-family: courier; color: red; }
+     canvas {background-color: black; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Shows the possibility for the existence of pneumonia in the chest X-ray image</h1>
+
+    <p>Select the file or drag and drop the image</p>
+    <canvas id="xp-input" width="360" height="360">Browser does not support canvas</canvas>
+    
+    <!-- Select the image file with input tag -->
+    <br>  <input type="file" id="fileInput" /> <br> 
+
+
+    <br>  <button id="hantei">Judgment (It may take some time to get the result)</button>
+
+    <h2>Judgment result: Pneumonia probability will be displayed (please wait for a while until the judgment will be made especially first time)</h2>
+	<div id="DisplayProbability" style="font-family: courier; color:red; font-size: 120%;">Probability of pneumonia:<span id="Probability"></span></div>
+
+    <script>    
+      // While the drag element overlaps the drop element,
+      window.addEventListener("dragover", function(evt) {
+        evt.preventDefault();  // Turn off the browser's default image display processing
+      }, false);
+    </script>    
+    
+    <!-- Load TensorFlow.js: https://www.tensorflow.org/js/tutorials/setup?hl=en -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+ 
+    <script>
+      // Load the pnemunonia judgement tensorflow.js model
+      pneumonia_model_name = './tmdu_pneumonia_model_js/model.json'      
+      let PNEUMONIAmodel;
+      async function LoadPNEUMONIAmodel(){
+        // Load PNEUMONIA model
+        PNEUMONIAmodel = await tf.loadLayersModel(pneumonia_model_name);
+      }
+      LoadPNEUMONIAmodel();
+       
+      // Storage variable for the result (probability of pneumonia)
+      let ProbabilityForAbormal;
+
+      // input area (canvas element and context) for chest X-ray image
+      const CanvasXpInput = document.getElementById("xp-input");
+      const ContextXpInput = CanvasXpInput.getContext('2d');
+
+      // display area for the judgement result
+	  <!-- set display area, treshould -->
+      let elem = document.getElementById('DisplayProbability')
+      cutoff = 0.5; 
+
+      // input tag (image file name) element
+      const fileInput = document.getElementById("fileInput");
+
+      // When the image file name is selected, load the image
+      fileInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        // console.log(file);
+        readFile(file);
+      });
+      
+      // When the image is dropped, load the image
+      window.addEventListener("drop", function(evt) {
+        evt.preventDefault();  // Turn off the browser's default image display processing
+        const file = evt.dataTransfer.files[0];
+        // console.log(file);
+        readFile(file);
+      });
+
+      // Read the file and image using FileReader API
+      function readFile(file) {
+        let image = new Image();
+        const reader = new FileReader();
+        // Load the file
+        reader.readAsDataURL(file);
+        // After loading the file is finished, display the image
+        reader.onload = function (event) {
+          // Read the image
+          image.src = reader.result;
+          //console.log(image.src);
+          // After reading the image
+　        image.onload = function() {
+            // display the image at both canvas areas
+            ContextXpInput.drawImage(image, 0, 0, 360, 360);
+          }
+        }
+      }
+
+      // Judgment button was pressed
+      document.getElementById('hantei').addEventListener('click', function () {
+        // Get image data from 360x360 XP display area
+        // https://js.tensorflow.org/api/1.0.0/#browser.fromPixels
+        tfData = tf.browser.fromPixels(CanvasXpInput, 3);
+        // Make it a floating point but do not divide by 255
+        //   https://js.tensorflow.org/api/1.2.11/#tf.Tensor.toFloat
+        // Add a dimension to [360,360,3] -> [1,360,360,3]
+        //   https://js.tensorflow.org/api/1.2.11/#expandDims
+        tfAIdata = tfData.toFloat().expandDims();
+        // Inference
+        runInference(tfAIdata); 
+        // Display
+        <!--  set color -->
+        if (ProbabilityForAbormal < cutoff){
+          elem.style.color = "green";
+        }
+        else{
+          elem.style.color = "red";
+        } <!-- End of set color -->
+        <!-- set display value -->
+        displaytext = " The probability for pneumonia is " + (ProbabilityForAbormal).toFixed(3);
+        elem.innerText = displaytext;
+        // console.log(ProbabilityForAbormal);
+      });
+
+    <!-- Deep Learning inference -->
+    function runInference(x1){
+      // Use tf.tidy to prevent memory leaks
+      //    https://www.tensorflow.org/js/guide/tensors_operations?hl=en
+      tf.tidy(() => {
+        const y1 = PNEUMONIAmodel.predict(x1); 
+        console.log(y1);
+        ProbabilityForAbormal = y1.reshape([-1]).arraySync()[0];
+        return;
+      });
+    }
+    <!-- End of Deep Learning inference -->
+
+    </script>
+
+    <!-- In case Javascript is not working -->
+    <noscript>
+    <p>It does not work!</p>
+    <p>Please turn on Javascript!</p>
+    </noscript>
+
+  </body>
+</html>
