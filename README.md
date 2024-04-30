@@ -12,7 +12,7 @@ patience = 100 (from 10), initial_learning_rate = 0.001 (from 0.015), decay_step
 ![Test Image 1](images/Originalearning.png) 
 　モデル作成時の判定正確度は90%以上ありましたが当院の画像での評価は判定正確度64%でした。ドメインシフトに対応するため当院の画像を使用し、ファインチューニングを行うプログラム("finetuning.py")にて判定正確度を74%を高めたモデル("xray_model_finetuning.h5")を作りました(東京医科歯科大学医学部倫理審査委員会承認済:M2019-086)。
 ![Test Image 2](images/Finetuninglearning.png) 
-　利用者がこのモデルを気軽に利用できるようにWebサイト(https://sumi-yuki.github.io/abnormalChestXPdetection/)を構築しました。できるだけシンプルにする為フレームワークは使用せず、HTML, CSS, Javascriptプログラムを一つのファイルにまとめました。Tensorflowの機械学習モデルをブラウザのJavaScriptで直接実行できるライブラリTensorFlow.js (https://www.tensorflow.org/js?hl=ja) を利用しました。そのためにPythonで作成したKerasモデル("xray_model_finetuning.h5")をTensorFlow.js形式("tmdu_pneumonia_model_js")に変換するプログラム(keras_js_converter.py)を作成しました。
+　利用者がこのモデルを気軽に利用できるようにWebサイト(https://sumi-yuki.github.io/abnormalChestXPdetection/) を構築しました。できるだけシンプルにする為フレームワークは使用せず、HTML, CSS, Javascriptプログラムを一つのファイルにまとめました。Tensorflowの機械学習モデルをブラウザのJavaScriptで直接実行できるライブラリTensorFlow.js (https://www.tensorflow.org/js?hl=ja) を利用しました。そのためにPythonで作成したKerasモデル("xray_model_finetuning.h5")をTensorFlow.js形式("tmdu_pneumonia_model_js")に変換するプログラム(keras_js_converter.py)を作成しました。
 　サンプルコード"Pneumonia Classification on TPU"に行った変更としてまず  TPU関連を削除しました。更に入力解像度を180×180から360×360に増加させました。(こちらの方が最終精度がやや良かった) その為に畳み込み層を追加し、最終層のドロップアウト率を0.2から0.3に増やしました。ファインチューニングでは東京医科歯科大学附属病院X線(正常341例、肺炎204例)用いて元モデルに上書き学習しましたが、学習パラメーターを以下のように変更しました。
 patience = 100 ← 10, initial_learning_rate = 0.001 ← 0.015, decay_steps = 100 ← 100000。
  
